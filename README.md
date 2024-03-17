@@ -37,8 +37,6 @@ cd Django-Social-Network/bookmarks
 
 Install the required dependencies:
 
-bash
-
 pip install -r requirements.txt
 
 Set up your environment variables:
@@ -47,15 +45,13 @@ Set up your environment variables:
 
 Apply database migrations:
 
-bash
-
     python manage.py migrate
 
 Running the Server
 
 Start the Django development server with SSL certification for development:
 
-bash
+css
 
 python manage.py runserver_plus --cert-file cert.crt
 
