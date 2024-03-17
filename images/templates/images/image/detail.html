@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ image.title }}{% endblock %}
+
+{% block content %}
+    {% load thumbnail %}
+    <a href="{{ image.image.url }}">
+        <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
+    </a>
+    {% with total_likes=image.users_like.count users_like=image.users_like.all %}
+        <div class="image-info">
+            <div>
+                <span class="count">
+                    <span class="total">{{ total_likes }}</span> likes
+                </span>
+                <span class="count">
+                 <span class="total">{{ total_views }}</span> Views
+                </span>
+                <a href="#" data-id="{{ image.id }}" data-action="{% if request.user in users_like %}un{% endif %}like"
+                   class="like button">
+                    {% if request.user not in users_like %}
+                        Like
+                    {% else %}
+                        Unlike
+                    {% endif %}
+                </a>
+            </div>
+            {{ image.description|linebreaks }}
+        </div>
+    {% endwith %}
+{% endblock %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
+<script>
+    const csrftoken = Cookies.get('csrftoken');
+
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    {% block domready %}
+        $('a.like').click(function (e) {
+            e.preventDefault();
+            $.post('{% url "images:like" %}',
+                {
+                    id: $(this).data('id'),
+                    action: $(this).data('action')
+                },
+                function (data) {
+                    if (data['status'] == 'ok') {
+                        var previous_action = $('a.like').data('action');
+
+                        $('a.like').data('action', previous_action == 'like' ?
+                            'unlike' : 'like');
+                        $('a.like').text(previous_action == 'like' ? 'Unlike' :
+                            'Like');
+
+                        var previous_likes = parseInt($('span.count .total').text());
+                        $('span.count .total').text(previous_action == 'like' ?
+                            previous_likes + 1 : previous_likes - 1);
+                    }
+                }
+            );
+        });
+    {% endblock %}
+
+
+</script>
